@@ -1,0 +1,35 @@
+function mirrortable() {
+    str='candidates';
+    primaryConnection.query('SELECT * FROM '+str, (err, rows) => {
+      if (err) {
+        console.error('Error selecting exammasterss from primary database:', err);
+        return;
+      }
+  
+      if (rows.length === 0) {
+        console.log('No exammasterss found in primary database.');
+        return;
+      }
+  
+      // Truncate ''+str table in backup database
+      backupConnection.query('TRUNCATE TABLE '+str, (err) => {
+        if (err) {
+          console.error('Error truncating exammasters table in backup database:', err);
+          return;
+        }
+  
+        // Insert rows into ''+str table in backup database one by one
+        rows.forEach(row => {
+          backupConnection.query('INSERT INTO'+str+' SET ?', row, (err) => {
+            if (err) {
+              console.error('Error inserting exammasters into backup database:', err);
+              return;
+            }
+            console.log(`Inserted exammasters ID ${row.id} into backup database.`);
+          });
+        });
+  
+        console.log('Successfully mirrored exammasters table from primary database to backup database.');
+      });
+    });
+  }
